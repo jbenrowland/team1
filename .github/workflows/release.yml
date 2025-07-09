@@ -26,8 +26,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t jbenrowland/team1:latest .
-	working-directory: ./biodrop
+	run: | 
+	cd biodrop
+	docker build -t jbenrowland/team1:latest .
+
 
       - name: Push Docker image
         run: docker push jbenrowland/team1:latest
