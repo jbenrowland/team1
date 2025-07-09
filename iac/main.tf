@@ -33,6 +33,7 @@ resource "aws_security_group" "web_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "Allow HTTP from anywhere"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -67,16 +68,18 @@ resource "aws_instance" "app" {
               amazon-linux-extras install docker -y
               service docker start
               usermod -a -G docker ec2-user
+              yum install git -y
+              cd /home/ec2-user
               docker pull jbenrowland/team1:latest
-              docker run -d -p 80:3000 jbenrowland/team1:latest
+              docker run -d -p 80:8080 jbenrowland/team1:latest
               EOF
 
   tags = {
-    Name = "biodrop-app"
+    Name = "team1-app"
   }
 }
 
 output "instance_public_ip" {
-  description = "Visit http://<this-ip> to access the app"
+  description = "Public IP of the instance"
   value       = aws_instance.app.public_ip
 }

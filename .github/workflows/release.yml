@@ -1,7 +1,17 @@
 name: Terraform Release Pipeline
 
 on:
-  workflow_dispatch:  # Allows manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      AWS_ACCESS_KEY_ID:
+        description: 'Temporary AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'Temporary AWS Secret Access Key'
+        required: true
+      AWS_SESSION_TOKEN:
+        description: 'Temporary AWS Session Token'
+        required: true
 
 jobs:
   terraform-deploy:
@@ -9,39 +19,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout your code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Set AWS Credentials from GitHub Secrets
       - name: Set AWS Credentials
         run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
-      # Install Terraform
+          echo "AWS_ACCESS_KEY_ID=${{ github.event.inputs.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ github.event.inputs.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+          echo "AWS_REGION=us-west-2" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=us-west-2" >> $GITHUB_ENV
+
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.7
 
-      # Terraform Init
       - name: Terraform Init
         run: terraform init
         working-directory: ./iac
 
-      # Terraform Plan
       - name: Terraform Plan
         run: terraform plan
         working-directory: ./iac
 
-      # Terraform Apply
       - name: Terraform Apply
         run: terraform apply --auto-approve
         working-directory: ./iac
 
-      # Optional: Upload Terraform state
-      - name: Upload Terraform State
+      - name: Upload Terraform state
         uses: actions/upload-artifact@v4
         with:
           name: terraform-state
