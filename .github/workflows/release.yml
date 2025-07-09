@@ -14,14 +14,11 @@ jobs:
         uses: actions/checkout@v4
 
       # Set AWS Credentials from GitHub Secrets
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-	  aws-region: us-west-2
-
+      - name: Set AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
       # Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
@@ -43,7 +40,7 @@ jobs:
         run: terraform apply --auto-approve
         working-directory: ./iac
 
-      # Upload Terraform state file
+      # Optional: Upload Terraform state
       - name: Upload Terraform State
         uses: actions/upload-artifact@v4
         with:
