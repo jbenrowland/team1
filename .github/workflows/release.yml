@@ -9,41 +9,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout your code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Set AWS Credentials from GitHub Secrets
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-east-1  # ✅ updated to match Northern Virginia
+      - name: Set AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ github.event.inputs.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ github.event.inputs.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+          echo "AWS_REGION=us-west-2" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=us-west-2" >> $GITHUB_ENV
 
-      # Install Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.7
 
-      # Terraform Init
       - name: Terraform Init
         run: terraform init
         working-directory: ./iac
 
-      # Terraform Plan
       - name: Terraform Plan
         run: terraform plan
         working-directory: ./iac
 
-      # Terraform Apply
       - name: Terraform Apply
         run: terraform apply --auto-approve
         working-directory: ./iac
 
-      # Upload Terraform state file
       - name: Upload Terraform State
         uses: actions/upload-artifact@v4
         with:
