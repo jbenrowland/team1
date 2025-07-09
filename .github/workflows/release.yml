@@ -1,55 +1,48 @@
-name: Release Pipeline
+name: Terraform Release Pipeline
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions UI
 
 jobs:
-  build-and-deploy:
+  terraform-deploy:
+    name: Deploy with Terraform
     runs-on: ubuntu-latest
-    env:
-      AWS_DEFAULT_REGION: us-west-2
-      AWS_REGION: us-west-2
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Checkout your code
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build Docker image
-	run: | 
-	cd biodrop
-	docker build -t jbenrowland/team1:latest .
-
-
-      - name: Push Docker image
-        run: docker push jbenrowland/team1:latest
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: us-west-2
-
-      - name: Set up Terraform
+      # Set AWS Credentials from GitHub Secrets
+      - name: Set AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+      # Install Terraform
+      - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
 
+      # Terraform Init
       - name: Terraform Init
         run: terraform init
+        working-directory: ./iac
 
+      # Terraform Plan
       - name: Terraform Plan
         run: terraform plan
+        working-directory: ./iac
 
+      # Terraform Apply
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply --auto-approve
+        working-directory: ./iac
+
+      # Optional: Upload Terraform state
+      - name: Upload Terraform State
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: iac/terraform.tfstate
