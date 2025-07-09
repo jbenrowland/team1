@@ -11,7 +11,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "team1-terraform-state"
+    bucket         = "team1-terraform-state-bucket"
     key            = "global/s3/terraform.tfstate"
     region         = "us-west-2"
     dynamodb_table = "team1-locks"
