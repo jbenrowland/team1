@@ -77,24 +77,13 @@ resource "aws_instance" "app" {
               cd /home/ec2-user
 
               # grab the docker image from dockerhub. We need to make sure we update the user name
-              docker pull squirest/bulletin-board-app:latest
-              docker run -d -p 80:8080 squirest/bulletin-board-app:latest
-
-              # #####################################################################
-              # If you wanted to clone your GitHub repo that contains the Dockerfile 
-              # #####################################################################
-              # git clone https://github.com/byui-itm350-s25/trevor-squires-personal.git
-              # Navigate to the app directory inside the repo
-              # cd trevor-squires-personal/bulletin-board-app
-              # Build and run the Docker container
-              # docker build -t bulletin-board .
-              # docker run -d -p 80:8080 bulletin-board
-              # #####################################################################
+              docker pull jbenrowland/team1:latest
+              docker run -d -p 80:8080 jbenrowland/team1:latest
 
 
               EOF
   tags = {
-    Name = "bulletin-board-app"
+    Name = "team1"
   }
 }
 #Output the public IP address so you can access the app
