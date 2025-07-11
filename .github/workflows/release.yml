@@ -1,0 +1,61 @@
+# Name shown in GitHub Actions
+name: Terraform Release Pipeline
+
+# Manually trigger this workflow with temporary AWS credentials
+on:
+  workflow_dispatch:
+    inputs:
+      AWS_ACCESS_KEY_ID:
+        description: 'Temporary AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'Temporary AWS Secret Access Key'
+        required: true
+      AWS_SESSION_TOKEN:
+        description: 'Temporary AWS Session Token'
+        required: true
+
+jobs:
+  terraform-deploy:
+    name: Deploy with Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repo code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Set AWS session credentials as environment variables
+      - name: Set AWS Credentials
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ github.event.inputs.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ github.event.inputs.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+
+      # Install a specific version of Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      # Init in the iac directory
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./iac
+
+      # Plan the Terraform execution
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./iac
+
+      # Apply changes
+      - name: Terraform Apply
+        run: terraform apply --auto-approve
+        working-directory: ./iac
+      
+      #Upload the tf state to allow for git action destroy
+      - name: Upload Terraform state
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: iac/terraform.tfstate
