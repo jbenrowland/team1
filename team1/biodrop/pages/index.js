@@ -22,7 +22,11 @@ import { serverEnv } from "@config/schemas/serverSchema";
 import { PROJECT_NAME } from "@constants/index";
 import Button from "@components/Button";
 
-export async function getStaticProps() {
+//To help with no DB
+import { withStaticGuard } from '../lib/withStaticGuard';
+
+//Updated to be wrapped in the StaticGuard
+const getStaticPropsImpl = async () => {
   const pageConfig = config.isr.homepage;
 
   const { stats: totalStats } = await getTotalStats();
@@ -52,7 +56,11 @@ export async function getStaticProps() {
     },
     revalidate: pageConfig.revalidateSeconds,
   };
-}
+};
+
+// Export the StaticProp
+export const getStaticProps = withStaticGuard(getStaticPropsImpl);
+
 
 export default function Home({
   total,

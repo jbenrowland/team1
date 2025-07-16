@@ -19,3 +19,8 @@ mongo-compose.yml
 LICENSE
 CONTRIBUTING.md
 NOCODE-CHANGELOG.md
+.env*
+*.log
+.vscode
+__tests__/
+coverage/
