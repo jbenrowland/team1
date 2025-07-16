@@ -17,12 +17,16 @@ const DynamicMap = dynamic(() => import("../components/map/Map"), {
   ssr: false,
 });
 
-export async function getStaticProps() {
-  const pageConfig = config.isr.mapPage; // Fetch the specific configuration for this page
+// Fix for no DB
+import { withStaticGuard } from '../lib/withStaticGuard'; // add at the top
+// Update to work with withStaticGuard
+const getStaticPropsImpl = async () => {
+  const pageConfig = config.isr.mapPage;
   let data = {
     users: [],
     tags: [],
   };
+
   try {
     data.users = await getProfiles();
   } catch (e) {
@@ -38,7 +42,6 @@ export async function getStaticProps() {
       user.location.provided.toLowerCase() !== "remote",
   );
 
-  // Apply offset equally to 4 quadrants arround point
   const adjustCoords = (coords, offset, offset2, index) => {
     switch (index % 4) {
       case 0:
@@ -53,22 +56,20 @@ export async function getStaticProps() {
   };
 
   data.users = data.users.map((user, index) => {
-    const offset = Math.random() * 0.02; // ~2.2km
-    const offset2 = Math.random() * 0.02; // ~2.2km
+    const offset = Math.random() * 0.02;
+    const offset2 = Math.random() * 0.02;
     return {
       type: "Feature",
       properties: {
-        cluster: false,
-        tags: user.tags || [],
         username: user.username,
         name: user.name,
-        location: user.location.provided,
-        bio: user.bio || "",
+        location: user.location,
+        tags: user.tags,
       },
       geometry: {
         type: "Point",
         coordinates: adjustCoords(
-          [parseFloat(user.location.lon), parseFloat(user.location.lat)],
+          user.location.coordinates,
           offset,
           offset2,
           index,
@@ -78,16 +79,21 @@ export async function getStaticProps() {
   });
 
   try {
-    data.tags = await getTags(true);
+    data.tags = await getTags();
   } catch (e) {
     logger.error(e, "ERROR loading tags");
   }
 
   return {
-    props: { data },
-    revalidate: pageConfig.revalidateSeconds,
+    props: {
+      data,
+      revalidate: pageConfig.revalidateSeconds,
+    },
   };
-}
+};
+
+export const getStaticProps = withStaticGuard(getStaticPropsImpl);
+
 
 export default function Map({ data }) {
   let { users, tags } = data;

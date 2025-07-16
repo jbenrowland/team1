@@ -60,7 +60,7 @@
     "dev-wsl": "HOST=$(hostname -I | awk '{print $1}') && next dev --hostname ${HOST}",
     "prebuild": "node ./config/schemas/serverSchema.js && node ./config/schemas/clientSchema.js",
     "build": "next build",
-    "test2": "npx playwright test --trace on",
+    "test": "npx playwright test --trace on",
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
@@ -68,8 +68,7 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "postinstall": "shx cp -n ./.env.example ./.env",
-    "cli": "npx biodrop-cli",
-    "test": "jest __tests__"
+    "cli": "npx biodrop-cli"
   },
   "browserslist": {
     "production": [
